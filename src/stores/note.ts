@@ -26,6 +26,14 @@ export const useNoteStore = defineStore('note', () => {
     notes.value.push(newNote)
   }
 
+  //Acutualizar el store editar
+  function updateNote(updateNote: Note) {
+    const index = notes.value.findIndex((note) => note.id === updateNote.id)
+    if (index !== -1) {
+      notes.value[index] = updateNote
+    }
+  }
+
   watch(
     notes,
     (newNotes) => {
@@ -39,5 +47,6 @@ export const useNoteStore = defineStore('note', () => {
     loading,
     fetchNotes,
     addNote,
+    updateNote,
   }
 })
