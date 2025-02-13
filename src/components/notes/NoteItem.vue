@@ -15,14 +15,38 @@
           {{ note.title }}
         </template>
       </h3>
-      <span
-        :class="[
-          'inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold uppercase tracking-wide',
-          priorityClass,
-        ]"
-      >
-        {{ note.tags }}
-      </span>
+
+      <div>
+        <!-- Si está en modo de edición, mostramos los campos para editar las etiquetas -->
+        <template v-if="isEditing">
+          <div class="flex gap-2">
+            <input
+              v-model="newTag"
+              class="p-2 border rounded w-24"
+              type="text"
+              placeholder="Nueva etiqueta"
+            />
+            <button class="bg-blue-500 text-white p-2 rounded" @click="addTag">
+              Agregar etiqueta
+            </button>
+          </div>
+          <div class="flex flex-wrap mt-2 gap-2">
+            <span
+              v-for="(tag, index) in editableNote.tags"
+              :key="index"
+              class="bg-gray-200 text-gray-700 inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-semibold uppercase tracking-wide"
+            >
+              {{ tag }}
+              <button class="cursor-pointer" @click="removeTag(index)">
+                <XMarkIcon class="size-6 text-red-500" />
+              </button>
+            </span>
+          </div>
+        </template>
+        <template v-else>
+          <span class="text-gray-600">{{ note.tags.join(', ') }}</span>
+        </template>
+      </div>
     </div>
 
     <p class="text-gray-900 text-sm leading-relaxed">
@@ -72,6 +96,7 @@
 </template>
 
 <script setup lang="ts">
+import { XMarkIcon } from '@heroicons/vue/24/solid'
 import type { Note } from '@/interfaces/INote'
 import { useNoteStore } from '@/stores/note'
 import { computed, reactive, ref } from 'vue'
@@ -88,6 +113,8 @@ defineEmits<{
 const isEditing = ref(false)
 //Copia reactiva de la nota para editar
 const editableNote = reactive({ ...props.note })
+//Estado para la nueva etiqueta que se quiere agregar
+const newTag = ref('')
 //Función para activar el modo de edición
 const editNote = () => {
   isEditing.value = true
@@ -97,6 +124,17 @@ const saveEdits = () => {
   const noteStore = useNoteStore()
   noteStore.updateNote(editableNote) // Actualiza la nota en el store
   isEditing.value = false // Desactiva el modo de edición
+}
+//Función para agregar una nueva etiqueta
+const addTag = () => {
+  if (newTag.value.trim() && !editableNote.tags.includes(newTag.value.trim())) {
+    editableNote.tags.push(newTag.value.trim())
+    newTag.value = '' //Limpiar el campo de entrada
+  }
+}
+//Función para eliminar una etiqueta
+const removeTag = (index: number) => {
+  editableNote.tags.splice(index, 1)
 }
 
 const priorityClass = computed(
